@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/moviesDB
+      - REDIS_HOST=redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongodb_data:
