@@ -93,6 +93,8 @@ The seed script will:
 
 ## API Endpoints
 
+Postman Collection: [Movies API]()
+
 ### Movies
 
 - `GET /movies` - Get all movies
@@ -154,6 +156,8 @@ movies-api/
 │   ├── services/
 │   │   ├── movieService.ts
 │   │   └── directorService.ts
+│   ├── scripts/
+│   │   └── seed.ts
 │   └── server.ts
 ├── docker-compose.yml
 ├── Dockerfile
