@@ -7,11 +7,13 @@ services:
       - mongodb
       - redis
     environment:
+      - PORT=3001
       - MONGO_URI=mongodb://mongodb:27017/moviesDB
       - REDIS_HOST=redis
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/dist
 
   mongodb:
     image: mongo

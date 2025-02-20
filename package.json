@@ -9,13 +9,18 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "seed": "ts-node src/scripts/seed.ts"
   },
   "keywords": [
     "movies",
+    "directors",
     "api",
     "typescript",
-    "nodejs"
+    "nodejs",
+    "mongodb",
+    "redis",
+    "docker"
   ],
   "author": "",
   "license": "ISC",
