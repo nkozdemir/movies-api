@@ -2,35 +2,61 @@ import { Movie, IMovie } from '../models/movie';
 import redisClient from '../config/redis';
 
 export const getAllMovies = async (): Promise<IMovie[]> => {
-    const cacheKey = 'allMovies';
+    try {
+        const cacheKey = 'allMovies';
 
-    // Check Redis cache first
-    const cachedMovies = await redisClient.get(cacheKey);
-    if (cachedMovies) {
-        return JSON.parse(cachedMovies);
+        try {
+            // Check Redis cache first
+            const cachedMovies = await redisClient.get(cacheKey);
+            if (cachedMovies) {
+                return JSON.parse(cachedMovies);
+            }
+        } catch (redisError) {
+            // If Redis fails, continue with database query
+            console.error('Redis error:', redisError);
+        }
+
+        // Fetch from MongoDB
+        const movies = await Movie.find().populate('director');
+
+        // Try to store in Redis, but don't fail if Redis is unavailable
+        try {
+            await redisClient.setEx(cacheKey, 3600, JSON.stringify(movies));
+        } catch (redisError) {
+            console.error('Redis caching error:', redisError);
+        }
+
+        return movies;
+    } catch (error) {
+        console.error('Error fetching movies:', error);
+        throw error;
     }
-
-    // Fetch from MongoDB if not in cache
-    const movies = await Movie.find().populate('director');
-
-    // Store in Redis (expire in 1 hour)
-    await redisClient.setEx(cacheKey, 3600, JSON.stringify(movies));
-
-    return movies;
 };
 
 export const createMovie = async (movieData: Partial<IMovie>): Promise<IMovie> => {
     const newMovie = new Movie(movieData);
-    await redisClient.del('allMovies'); // Clears cached movies when modifying data
+    try {
+        await redisClient.del('allMovies'); // Clear cache
+    } catch (redisError) {
+        console.error('Redis error clearing cache:', redisError);
+    }
     return await newMovie.save();
 };
 
 export const updateMovie = async (id: string, movieData: Partial<IMovie>): Promise<IMovie | null> => {
-    await redisClient.del('allMovies'); // Clears cached movies when modifying data
+    try {
+        await redisClient.del('allMovies'); // Clear cache
+    } catch (redisError) {
+        console.error('Redis error clearing cache:', redisError);
+    }
     return await Movie.findByIdAndUpdate(id, movieData, { new: true });
 };
 
 export const deleteMovie = async (id: string): Promise<IMovie | null> => {
-    await redisClient.del('allMovies'); // Clears cached movies when modifying data
+    try {
+        await redisClient.del('allMovies'); // Clear cache
+    } catch (redisError) {
+        console.error('Redis error clearing cache:', redisError);
+    }
     return await Movie.findByIdAndDelete(id);
 };

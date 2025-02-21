@@ -158,11 +158,17 @@ movies-api/
 │   │   └── directorService.ts
 │   ├── scripts/
 │   │   └── seed.ts
+│   ├── tests/
+│   │   ├── movie.test.ts
+│   │   └── director.test.ts
+│   │   └── setup.ts
 │   ├── utils/
 │   │   └── response.ts
 │   └── server.ts
+├── .gitignore
 ├── docker-compose.yml
 ├── Dockerfile
+├── jest.config.js
 ├── package.json
 └── tsconfig.json
 ```
@@ -186,3 +192,63 @@ movies-api/
 - Jest (Testing)
 - ESLint (Linting)
 - Prettier (Code Formatting)
+
+## Testing
+
+The application includes comprehensive test suites for all endpoints using Jest and Supertest.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Run tests in watch mode
+npm test -- --watch
+```
+
+### Test Environment
+
+- Uses `mongodb-memory-server` for MongoDB testing
+- Uses `redis-mock` for Redis testing
+- Automatically cleans up test data between tests
+
+### Test Coverage
+
+The test suite covers:
+- All API endpoints (Movies and Directors)
+- Success and error scenarios
+- Data validation
+- Business logic (e.g., preventing deletion of directors with movies)
+- Response format compliance
+
+### Example Test Cases
+
+#### Movies
+- GET /movies
+  - Returns empty array when no movies exist
+  - Returns all movies when they exist
+- POST /movies
+  - Creates movie with valid data
+  - Validates required fields
+  - Validates data formats (dates, IMDb ID)
+- PUT /movies/:id
+  - Updates movie with valid data
+  - Handles partial updates
+  - Validates update data
+- DELETE /movies/:id
+  - Deletes existing movie
+  - Handles non-existent movie
+
+#### Directors
+- POST /directors
+  - Creates director with valid data
+  - Validates required fields
+  - Validates date formats
+- DELETE /directors/:id
+  - Deletes director with no movies
+  - Prevents deletion of director with movies
+  - Handles non-existent director

@@ -59,15 +59,22 @@ export const directorController = {
         }
 
         try {
-            // Delete the director
             await deleteDirector(directorId);
             sendSuccess(res, null, 'Director deleted successfully');
         } catch (error) {
             if (error instanceof Error) {
-                sendError(res, 'Failed to delete director', error.message, 500);
-            } else {
-                sendError(res, 'Failed to delete director', 'Unknown error occurred', 500);
+                if (error.message === 'Director not found') {
+                    return sendError(res, 'Director not found', 'Not Found', 404);
+                } else if (error.message === 'Director has movie(s), cannot delete') {
+                    return sendError(
+                        res,
+                        'Cannot delete director because they have associated movies. Please delete the movies first.',
+                        'Conflict',
+                        409
+                    );
+                }
             }
+            sendError(res, 'Failed to delete director', 'Internal Server Error', 500);
         }
     }
 };
