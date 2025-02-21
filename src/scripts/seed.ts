@@ -23,6 +23,18 @@ const directors = [
         lastName: "Tarantino",
         birthDate: new Date("1963-03-27"),
         bio: "American film director, screenwriter, and actor"
+    },
+    {
+        firstName: "Steven",
+        lastName: "Spielberg",
+        birthDate: new Date("1946-12-18"),
+        bio: "American filmmaker known for his work in the adventure and sci-fi genres."
+    },
+    {
+        firstName: "James",
+        lastName: "Cameron",
+        birthDate: new Date("1954-08-16"),
+        bio: "Canadian filmmaker known for groundbreaking visual effects and sci-fi epics."
     }
 ];
 
@@ -53,12 +65,39 @@ const seedDatabase = async () => {
                 director: createdDirectors[0]._id // Christopher Nolan
             },
             {
+                title: "The Dark Knight",
+                description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+                releaseDate: new Date("2008-07-18"),
+                genre: "Action",
+                rating: 9.0,
+                imdbId: "tt0468569",
+                director: createdDirectors[0]._id // Christopher Nolan
+            },
+            {
+                title: "Interstellar",
+                description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+                releaseDate: new Date("2014-11-07"),
+                genre: "Sci-Fi",
+                rating: 8.6,
+                imdbId: "tt0816692",
+                director: createdDirectors[0]._id // Christopher Nolan
+            },
+            {
                 title: "The Wolf of Wall Street",
                 description: "Based on the true story of Jordan Belfort, from his rise to a wealthy stock-broker living the high life to his fall involving crime, corruption and the federal government.",
                 releaseDate: new Date("2013-12-25"),
                 genre: "Biography",
                 rating: 8.2,
                 imdbId: "tt0993846",
+                director: createdDirectors[1]._id // Martin Scorsese
+            },
+            {
+                title: "Goodfellas",
+                description: "The story of Henry Hill and his life in the mafia, covering his relationship with his wife Karen Hill and his mob partners.",
+                releaseDate: new Date("1990-09-19"),
+                genre: "Crime",
+                rating: 8.7,
+                imdbId: "tt0099685",
                 director: createdDirectors[1]._id // Martin Scorsese
             },
             {
@@ -71,13 +110,22 @@ const seedDatabase = async () => {
                 director: createdDirectors[2]._id // Quentin Tarantino
             },
             {
-                title: "The Dark Knight",
-                description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
-                releaseDate: new Date("2008-07-18"),
-                genre: "Action",
-                rating: 9.0,
-                imdbId: "tt0468569",
-                director: createdDirectors[0]._id // Christopher Nolan
+                title: "Jurassic Park",
+                description: "During a preview tour, a theme park suffers a major power breakdown that allows its cloned dinosaur exhibits to run amok.",
+                releaseDate: new Date("1993-06-11"),
+                genre: "Adventure",
+                rating: 8.2,
+                imdbId: "tt0107290",
+                director: createdDirectors[3]._id // Steven Spielberg
+            },
+            {
+                title: "Avatar",
+                description: "A paraplegic Marine dispatched to the moon Pandora on a unique mission becomes torn between following his orders and protecting the world he feels is his home.",
+                releaseDate: new Date("2009-12-18"),
+                genre: "Sci-Fi",
+                rating: 7.9,
+                imdbId: "tt0499549",
+                director: createdDirectors[4]._id // James Cameron
             }
         ];
 
@@ -92,4 +140,4 @@ const seedDatabase = async () => {
     }
 };
 
-seedDatabase(); 
+seedDatabase();

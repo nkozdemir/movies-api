@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { createDirector, deleteDirector } from '../services/directorService';
 import { parse } from 'url';
+import { sendSuccess, sendError } from '../utils/response';
 
 export const directorController = {
     createDirector: async (req: IncomingMessage, res: ServerResponse) => {
@@ -12,12 +13,39 @@ export const directorController = {
         req.on('end', async () => {
             try {
                 const directorData = JSON.parse(body);
+                
+                // Validate required fields
+                const requiredFields = ['firstName', 'lastName', 'birthDate', 'bio'];
+                const missingFields = requiredFields.filter(field => !directorData[field]);
+                
+                if (missingFields.length > 0) {
+                    return sendError(
+                        res,
+                        `Missing required fields: ${missingFields.join(', ')}`,
+                        'Validation Error',
+                        400
+                    );
+                }
+
+                // Validate birthDate format
+                const birthDate = new Date(directorData.birthDate);
+                if (isNaN(birthDate.getTime())) {
+                    return sendError(
+                        res,
+                        'Invalid birth date format. Use YYYY-MM-DD format',
+                        'Validation Error',
+                        400
+                    );
+                }
+
                 const newDirector = await createDirector(directorData);
-                res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(newDirector));
+                sendSuccess(res, newDirector, 'Director created successfully', 201);
             } catch (error) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ message: 'Invalid director data' }));
+                if (error instanceof SyntaxError) {
+                    sendError(res, 'Invalid JSON format', 'Invalid Request', 400);
+                } else {
+                    sendError(res, 'Failed to create director', 'Internal Server Error', 500);
+                }
             }
         });
     },
@@ -26,18 +54,20 @@ export const directorController = {
         const parsedUrl = parse(req.url || '', true);
         const directorId = parsedUrl.pathname?.split('/')[2];
 
+        if (!directorId) {
+            return sendError(res, 'Director ID is required', 'Invalid Request', 400);
+        }
+
         try {
-            const deletedDirector = await deleteDirector(directorId as string);
-            if (!deletedDirector) {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ message: 'Director not found' }));
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'Director deleted successfully' }));
+            // Delete the director
+            await deleteDirector(directorId);
+            sendSuccess(res, null, 'Director deleted successfully');
         } catch (error) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'Error deleting director' }));
+            if (error instanceof Error) {
+                sendError(res, 'Failed to delete director', error.message, 500);
+            } else {
+                sendError(res, 'Failed to delete director', 'Unknown error occurred', 500);
+            }
         }
     }
 };

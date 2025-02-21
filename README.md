@@ -93,7 +93,7 @@ The seed script will:
 
 ## API Endpoints
 
-Postman Collection: [Movies API]()
+Postman Collection: [Movies API](https://www.postman.com/nkozd/workspace/movies-api/collection/28299888-13d8c90a-f869-42a9-bd7f-0b15f422219f?action=share&creator=28299888)
 
 ### Movies
 
@@ -158,6 +158,8 @@ movies-api/
 │   │   └── directorService.ts
 │   ├── scripts/
 │   │   └── seed.ts
+│   ├── utils/
+│   │   └── response.ts
 │   └── server.ts
 ├── docker-compose.yml
 ├── Dockerfile
