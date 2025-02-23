@@ -1,6 +1,6 @@
-import { directorController } from '../controllers/directorController';
+import { directorController } from "../controllers/directorController";
 
 export const directorRoutes = {
-    createDirector: directorController.createDirector,
-    deleteDirector: directorController.deleteDirector,
+  createDirector: directorController.createDirector,
+  deleteDirector: directorController.deleteDirector,
 };
