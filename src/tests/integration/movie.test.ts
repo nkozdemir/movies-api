@@ -1,11 +1,11 @@
 import request from 'supertest';
 import { createServer } from 'http';
-import { Movie } from '../models/movie';
-import { Director } from '../models/director';
+import { Movie } from '../../models/movie';
+import { Director } from '../../models/director';
 import mongoose from 'mongoose';
 
 const app = createServer(async (req, res) => {
-    const { movieRoutes } = await import('../routes/movies');
+    const { movieRoutes } = await import('../../routes/movies');
     
     const url = new URL(req.url || '', `http://${req.headers.host}`);
     

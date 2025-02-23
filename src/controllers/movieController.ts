@@ -102,68 +102,49 @@ export const movieController = {
         req.on('end', async () => {
             try {
                 const movieData = JSON.parse(body);
-
-                // Check if any data was provided
                 if (Object.keys(movieData).length === 0) {
-                    return sendError(res, 'No update data provided', 'Validation Error', 400);
+                    return sendError(res, 'No fields provided for update', 'Validation Error', 400);
                 }
 
-                const updateFields: Record<string, any> = {};
-                const validationErrors: string[] = [];
+                let errors: string[] = [];
 
-                // Validate only the fields that were provided
+                // Validate title, description, genre. if provided, they cannot be empty
+                const stringFields = ['title', 'description','genre'];
+                
+                for (const field of stringFields) {
+                    if (movieData[field] !== undefined && movieData[field] === '') {
+                        errors.push(`${field} cannot be empty`);
+                    }
+                }
+
+                // Validate provided fields
                 if (movieData.releaseDate !== undefined) {
                     const releaseDate = new Date(movieData.releaseDate);
                     if (isNaN(releaseDate.getTime())) {
-                        validationErrors.push('Invalid release date format. Use YYYY-MM-DD format');
-                    } else {
-                        updateFields.releaseDate = releaseDate;
+                        errors.push('Invalid release date format. Use YYYY-MM-DD');
                     }
                 }
 
-                if (movieData.rating !== undefined) {
-                    if (typeof movieData.rating !== 'number' || movieData.rating < 0 || movieData.rating > 10) {
-                        validationErrors.push('Rating must be a number between 0 and 10');
-                    } else {
-                        updateFields.rating = movieData.rating;
-                    }
+                if (movieData.rating !== undefined && (movieData.rating < 0 || movieData.rating > 10)) {
+                    errors.push('Rating must be between 0 and 10');
                 }
 
-                if (movieData.imdbId !== undefined) {
-                    if (!/^tt\d{7}$/.test(movieData.imdbId)) {
-                        validationErrors.push('Invalid IMDb ID format. Use ttXXXXXXX format (e.g., tt0468569)');
-                    } else {
-                        updateFields.imdbId = movieData.imdbId;
-                    }
+                if (movieData.imdbId !== undefined && !/tt\d{7}/.test(movieData.imdbId)) {
+                    errors.push('Invalid IMDb ID format. Use ttXXXXXXXX');
+                }
+
+                if (errors.length > 0) {
+                    return sendError(res, errors.join(', '), 'Validation Error', 400);
                 }
 
                 if (movieData.director !== undefined) {
                     const existingDirector = await getDirectorById(movieData.director);
                     if (!existingDirector) {
-                        validationErrors.push('Director not found');
-                    } else {
-                        updateFields.director = movieData.director;
+                        return sendError(res, 'Director not found', 'Not Found', 404);
                     }
                 }
 
-                // Handle string fields with simple validation
-                const stringFields = ['title', 'description', 'genre'];
-                stringFields.forEach(field => {
-                    if (movieData[field] !== undefined) {
-                        if (typeof movieData[field] !== 'string' || !movieData[field].trim()) {
-                            validationErrors.push(`${field} must be a non-empty string`);
-                        } else {
-                            updateFields[field] = movieData[field].trim();
-                        }
-                    }
-                });
-
-                // If there are any validation errors, return them all at once
-                if (validationErrors.length > 0) {
-                    return sendError(res, validationErrors, 'Validation Error', 400);
-                }
-
-                const updatedMovie = await updateMovie(movieId, updateFields);
+                const updatedMovie = await updateMovie(movieId, movieData);
                 if (!updatedMovie) {
                     return sendError(res, 'Movie not found', 'Not Found', 404);
                 }

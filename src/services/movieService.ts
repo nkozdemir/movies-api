@@ -21,7 +21,9 @@ export const getAllMovies = async (): Promise<IMovie[]> => {
 
         // Try to store in Redis, but don't fail if Redis is unavailable
         try {
-            await redisClient.setEx(cacheKey, 3600, JSON.stringify(movies));
+            await redisClient.set(cacheKey, JSON.stringify(movies), { 
+                EX: 3600 
+            });
         } catch (redisError) {
             console.error('Redis caching error:', redisError);
         }
