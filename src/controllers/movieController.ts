@@ -121,7 +121,7 @@ export const movieController = {
                 if (movieData.releaseDate !== undefined) {
                     const releaseDate = new Date(movieData.releaseDate);
                     if (isNaN(releaseDate.getTime())) {
-                        errors.push('Invalid release date format. Use YYYY-MM-DD');
+                        errors.push('Invalid release date format. Use YYYY-MM-DD format');
                     }
                 }
 
@@ -130,7 +130,7 @@ export const movieController = {
                 }
 
                 if (movieData.imdbId !== undefined && !/tt\d{7}/.test(movieData.imdbId)) {
-                    errors.push('Invalid IMDb ID format. Use ttXXXXXXXX');
+                    errors.push('Invalid IMDb ID format. Use ttXXXXXXXX format');
                 }
 
                 if (errors.length > 0) {

@@ -3,7 +3,6 @@ import { movieController } from '../../controllers/movieController';
 import * as movieService from '../../services/movieService';
 import * as directorService from '../../services/directorService';
 import { Socket } from 'net';
-import { EventEmitter } from 'events';
 
 // Mock services
 jest.mock('../../services/movieService');
@@ -133,6 +132,20 @@ describe('Movie Controller Unit Tests', () => {
             expect(responseData.message).toBe('Validation Error');
         });
 
+        it('should validate release date format', async () => {
+            const invalidData = {
+                ...createValidMovieData(),
+                releaseDate: 'invalid'
+            };
+
+            const promise = movieController.createMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(invalidData);
+            await promise;
+
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toContain('Invalid release date format. Use YYYY-MM-DD format');
+        });
+
         it('should validate rating range', async () => {
             const invalidData = {
                 ...createValidMovieData(),
@@ -147,6 +160,20 @@ describe('Movie Controller Unit Tests', () => {
             expect(responseData.error).toContain('Rating must be between 0 and 10');
         });
 
+        it('should validate imdbId format', async () => {
+            const invalidData = {
+                ...createValidMovieData(),
+                imdbId: 'invalid'
+            };
+
+            const promise = movieController.createMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(invalidData);
+            await promise;
+
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toContain('Invalid IMDb ID format. Use ttXXXXXXXX');
+        });
+
         it('should handle non-existent director', async () => {
             const movieData = createValidMovieData();
             (directorService.getDirectorById as jest.Mock).mockResolvedValue(null);
@@ -159,12 +186,43 @@ describe('Movie Controller Unit Tests', () => {
             expect(responseData.error).toBe('Director not found');
             expect(responseData.status).toBe(404);
         });
+
+        it('should handle invalid JSON', async () => {
+            const promise = movieController.createMovie(mockRequest, mockResponse as ServerResponse);
+            mockRequest.emit('data', 'invalid-json{');
+            mockRequest.emit('end');
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Invalid JSON format');
+        });
     });
 
     describe('updateMovie', () => {
         beforeEach(() => {
             mockRequest = new MockIncomingMessage();
             mockRequest.url = '/movies/movie-id';
+        });
+
+        it('should handle missing movie ID', async () => {
+            mockRequest.url = undefined;
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Movie ID is required');
+        });
+
+        it('should handle no fields provided for update', async () => {
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest({});
+            await promise;
+        
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('No fields provided for update');
         });
 
         it('should update movie successfully', async () => {
@@ -187,9 +245,57 @@ describe('Movie Controller Unit Tests', () => {
             expect(responseData.data.rating).toBe(updateData.rating);
         });
 
-        it('should validate update data', async () => {
+        it('should validate string fields', async () => {
             const invalidData = {
-                rating: 11,
+                title: '',
+                description: '',
+                genre: ''
+            };
+
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(invalidData);
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toContain('title cannot be empty');
+            expect(responseData.error).toContain('description cannot be empty');
+            expect(responseData.error).toContain('genre cannot be empty');
+        });
+
+        it('should validate release date format', async () => {
+            const invalidData = {
+                ...createValidMovieData(),
+                releaseDate: 'invalid'
+            };
+
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(invalidData);
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toContain('Invalid release date format. Use YYYY-MM-DD format');
+        });
+
+        it('should validate rating range', async () => {
+            const invalidData = {
+                ...createValidMovieData(),
+                rating: 11
+            };
+
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(invalidData);
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toContain('Rating must be between 0 and 10');
+        });
+
+        it('should validate imdbId format', async () => {
+            const invalidData = {
+                ...createValidMovieData(),
                 imdbId: 'invalid'
             };
 
@@ -197,9 +303,52 @@ describe('Movie Controller Unit Tests', () => {
             await mockRequest.simulateRequest(invalidData);
             await promise;
 
+            expect(responseData.status).toBe(400);
             expect(responseData.success).toBe(false);
-            expect(responseData.message).toBe('Validation Error');
-            expect(responseData.error).toContain('Rating must be between 0 and 10');
+            expect(responseData.error).toContain('Invalid IMDb ID format. Use ttXXXXXXXX format');
+        });
+
+        it('should handle non-existent director', async () => {
+            const updateData = {
+                director: 'non-existent-id'
+            };
+            (directorService.getDirectorById as jest.Mock).mockResolvedValue(null);
+
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(updateData);
+            await promise;
+
+            expect(responseData.status).toBe(404);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Director not found');
+        });
+
+        it('should handle non-existent movie', async () => {
+            const updateData = {
+                title: 'Updated Title',
+                rating: 9.0
+            };
+
+            (movieService.updateMovie as jest.Mock).mockResolvedValue(null);
+
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            await mockRequest.simulateRequest(updateData);
+            await promise;
+
+            expect(responseData.status).toBe(404);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Movie not found');
+        });
+
+        it('should handle invalid JSON', async () => {
+            const promise = movieController.updateMovie(mockRequest, mockResponse as ServerResponse);
+            mockRequest.emit('data', 'invalid-json{');
+            mockRequest.emit('end');
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Invalid JSON format');
         });
     });
 
@@ -207,6 +356,16 @@ describe('Movie Controller Unit Tests', () => {
         beforeEach(() => {
             mockRequest = new MockIncomingMessage();
             mockRequest.url = '/movies/movie-id';
+        });
+
+        it('should handle missing movie ID', async () => {
+            mockRequest.url = undefined;
+            const promise = movieController.deleteMovie(mockRequest, mockResponse as ServerResponse);
+            await promise;
+
+            expect(responseData.status).toBe(400);
+            expect(responseData.success).toBe(false);
+            expect(responseData.error).toBe('Movie ID is required');
         });
 
         it('should delete movie successfully', async () => {

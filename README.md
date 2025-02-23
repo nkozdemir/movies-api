@@ -162,9 +162,6 @@ movies-api/
 │   │   └── unit/
 │   │   │   └── movieController.test.ts
 │   │   │   └── directorController.test.ts
-│   │   └── integration/
-│   │   │   └── movie.test.ts
-│   │   │   └── director.test.ts
 │   │   └── setup.ts
 │   ├── utils/
 │   │   └── response.ts
@@ -199,18 +196,15 @@ movies-api/
 
 ## Testing
 
-The application includes comprehensive test suites with both unit and integration tests using Jest. The test coverage is above 80% for most components, with 100% function coverage across the codebase.
+The application includes comprehensive unit tests for all endpoints using Jest. The tests focus on controller-level functionality, ensuring proper request handling, validation, and response formatting.
 
 ### Test Structure
 
 ```
 src/tests/
-├── unit/              # Unit tests for isolated component testing
+├── unit/              # Unit tests for controllers
 │   ├── movieController.test.ts
 │   └── directorController.test.ts
-├── integration/       # Integration tests for API endpoints
-│   ├── movie.test.ts
-│   └── director.test.ts
 └── setup.ts          # Test environment configuration
 ```
 
@@ -229,62 +223,95 @@ npm run test:watch
 
 ### Test Environment
 
-- Uses `mongodb-memory-server` for isolated MongoDB testing
-- Uses `redis-mock` for Redis operation testing
-- Automatically cleans up test data between test runs
-- Mocks external dependencies for unit tests
-- Uses real service integration for API tests
+- Uses mocked services for isolation
+- Simulates HTTP requests and responses
+- Validates response formatting and status codes
+- Tests error handling and edge cases
 
-### Current Coverage (as of latest run)
+### Current Coverage (Unit Tests)
 
-- Overall Statement Coverage: 85%
-- Branch Coverage: 62%
-- Function Coverage: 100%
-- Line Coverage: 84%
+- Overall Statement Coverage: 77.89%
+- Branch Coverage: 80%
+- Function Coverage: 69.56%
+- Line Coverage: 76.53%
 
 #### Coverage by Component
-- **Controllers**: 82% coverage with comprehensive error handling
+- **Controllers**: 95.79% coverage
+  - `directorController.ts`: 94.44% statements, 90.9% branches
+  - `movieController.ts`: 96.38% statements, 89.18% branches
 - **Models**: 100% coverage
-- **Services**: 85% coverage including database operations
-- **Routes**: 100% coverage
-- **Utils**: 100% line coverage
+- **Utils**: 100% line coverage, 25% branch coverage
 
-### Test Cases Overview
+### Unit Test Cases
 
-#### Unit Tests
-- **Controllers**
-  - Request validation
-  - Response formatting
-  - Error handling
-  - Edge cases
-  - Mock service interactions
+#### Movie Controller
+- **GET /movies**
+  - Returns all movies successfully
+  - Handles database errors appropriately
 
-#### Integration Tests
-- **Movies API**
-  - GET /movies
-    - Retrieves all movies
-    - Handles empty database
-    - Supports filtering and pagination
-  - POST /movies
-    - Creates valid movies
-    - Validates all required fields
-    - Handles invalid data
-    - Verifies director existence
-  - PUT /movies/:id
-    - Updates existing movies
-    - Validates partial updates
-    - Handles non-existent movies
-  - DELETE /movies/:id
-    - Removes movies
-    - Handles dependencies
-    - Verifies deletion
+- **POST /movies**
+  - Creates movie with valid data
+  - Validates required fields:
+    - title
+    - description
+    - releaseDate
+    - genre
+    - rating
+    - imdbId
+    - director
+  - Validates data formats:
+    - Release date format
+    - Rating range (0-10)
+    - IMDb ID pattern
+  - Handles non-existent director
+  - Handles invalid JSON input
 
-- **Directors API**
-  - POST /directors
-    - Creates valid directors
-    - Validates input data
-    - Handles duplicates
-  - DELETE /directors/:id
-    - Removes directors without movies
-    - Prevents deletion with dependencies
-    - Handles non-existent directors
+- **PUT /movies/:id**
+  - Updates movie with valid data
+  - Validates partial updates
+  - Handles missing movie ID
+  - Handles no fields provided for update
+  - Validates field formats:
+    - Empty string fields
+    - Release date
+    - Rating range
+    - IMDb ID
+  - Handles non-existent director
+  - Handles non-existent movie
+  - Handles invalid JSON
+
+- **DELETE /movies/:id**
+  - Deletes existing movie
+  - Handles missing movie ID
+  - Handles non-existent movie
+  - Validates movie ID requirement
+
+#### Director Controller
+- **POST /directors**
+  - Creates director with valid data
+  - Validates required fields:
+    - firstName
+    - lastName
+    - birthDate
+    - bio
+  - Validates birth date format
+  - Handles invalid JSON input
+
+- **DELETE /directors/:id**
+  - Deletes director with no movies
+  - Prevents deletion of director with movies
+  - Handles non-existent director
+  - Validates director ID requirement
+
+### Mocking Strategy
+- Services are mocked to isolate controller logic
+- Request/Response objects are mocked to simulate HTTP interactions
+- External dependencies (MongoDB, Redis) are not involved in unit tests
+
+### Running Tests in Development
+During development, use watch mode for faster feedback:
+```bash
+npm run test:watch
+```
+
+This will rerun relevant tests as you make changes to the code.
