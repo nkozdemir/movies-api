@@ -65,7 +65,7 @@ npm start
 docker-compose up
 ```
 
-## Database Seeding
+## Database Seeding (Optional, for development and testing purposes)
 
 The application comes with a seeding script that populates the database with sample movies and directors.
 
@@ -136,42 +136,34 @@ POST /directors
 }
 ```
 
-## Project Structure
+## Architecture Overview
+
+This project follows a layered architecture, which separates concerns into distinct components to enhance maintainability, scalability, and testability. The main components of the architecture are:
+
+- **Controllers**: 
+  - Responsible for handling incoming HTTP requests and sending responses. They act as intermediaries between the client and the service layer.
+  - Each controller corresponds to a specific resource (e.g., movies, directors).
+
+- **Services**: 
+  - Contain the business logic of the application. They interact with the database and perform CRUD operations.
+  - Services are reusable and can be called by multiple controllers.
+
+- **Models**: 
+  - Define the data schemas and manage interactions with the database using Mongoose.
+  - Each model corresponds to a specific collection in the MongoDB database.
+
+- **Utilities**: 
+  - Helper functions that provide common functionalities, such as response formatting and error handling.
+
+### Project Structure
 
 ```
-movies-api/
-├── src/
-│   ├── config/
-│   │   ├── db.ts
-│   │   └── redis.ts
-│   ├── controllers/
-│   │   ├── movieController.ts
-│   │   └── directorController.ts
-│   ├── models/
-│   │   ├── movie.ts
-│   │   └── director.ts
-│   ├── routes/
-│   │   ├── movies.ts
-│   │   └── directors.ts
-│   ├── services/
-│   │   ├── movieService.ts
-│   │   └── directorService.ts
-│   ├── scripts/
-│   │   └── seed.ts
-│   ├── tests/
-│   │   └── unit/
-│   │   │   └── movieController.test.ts
-│   │   │   └── directorController.test.ts
-│   │   └── setup.ts
-│   ├── utils/
-│   │   └── response.ts
-│   └── server.ts
-├── .gitignore
-├── docker-compose.yml
-├── Dockerfile
-├── jest.config.js
-├── package.json
-└── tsconfig.json
+src/
+├── controllers/    # HTTP request handlers
+├── models/         # Database schemas
+├── services/       # Business logic
+├── utils/          # Helper functions
+└── tests/          # Unit tests
 ```
 
 ## Scripts
@@ -197,16 +189,6 @@ movies-api/
 ## Testing
 
 The application includes comprehensive unit tests for all endpoints using Jest. The tests focus on controller-level functionality, ensuring proper request handling, validation, and response formatting.
-
-### Test Structure
-
-```
-src/tests/
-├── unit/              # Unit tests for controllers
-│   ├── movieController.test.ts
-│   └── directorController.test.ts
-└── setup.ts          # Test environment configuration
-```
 
 ### Running Tests
 
@@ -307,11 +289,3 @@ npm run test:watch
 - Services are mocked to isolate controller logic
 - Request/Response objects are mocked to simulate HTTP interactions
 - External dependencies (MongoDB, Redis) are not involved in unit tests
-
-### Running Tests in Development
-During development, use watch mode for faster feedback:
-```bash
-npm run test:watch
-```
-
-This will rerun relevant tests as you make changes to the code.
